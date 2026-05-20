@@ -3,7 +3,7 @@
  * Plugin Name:       WP 7 Readiness Check
  * Plugin URI:        https://champlinenterprises.com/wordpress-7-0-readiness-checklist.html
  * Description:       Premium pre-flight (and post-flight) audit for the WordPress 7.0 upgrade. Server, plugins, custom code, headless surfaces, multisite, security — 30+ automated checks with a visual readiness score. Free. Built by Champlin Enterprises.
- * Version:           1.0.4
+ * Version:           1.0.5
  * Requires at least: 6.0
  * Requires PHP:      7.4
  * Author:            Champlin Enterprises
@@ -21,7 +21,7 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-define('WP7RC_VERSION', '1.0.4');
+define('WP7RC_VERSION', '1.0.5');
 define('WP7RC_FILE', __FILE__);
 define('WP7RC_DIR', plugin_dir_path(__FILE__));
 define('WP7RC_URL', plugin_dir_url(__FILE__));
@@ -33,6 +33,34 @@ define('WP7RC_GITHUB_URL',     'https://github.com/Kevinchamplin/wp-7-readiness-
 require_once WP7RC_DIR . 'includes/helpers.php';
 require_once WP7RC_DIR . 'includes/runner.php';
 require_once WP7RC_DIR . 'includes/fixes.php';
+
+/**
+ * Auto-update from GitHub releases.
+ *
+ * Uses YahnisElsts/plugin-update-checker (PUC) v5 to poll GitHub releases hourly
+ * and surface new versions in wp-admin → Updates with the standard one-click
+ * update flow. No telemetry — PUC only fetches the public GitHub release
+ * manifest; nothing leaves your server.
+ *
+ * Each `gh release create vX.Y.Z` with a zip asset propagates to every installed
+ * copy within an hour.
+ */
+if (is_admin() || (defined('DOING_CRON') && DOING_CRON) || (defined('WP_CLI') && WP_CLI)) {
+    require_once WP7RC_DIR . 'vendor/plugin-update-checker/plugin-update-checker.php';
+    if (class_exists('\YahnisElsts\PluginUpdateChecker\v5\PucFactory')) {
+        $wp7rc_update_checker = \YahnisElsts\PluginUpdateChecker\v5\PucFactory::buildUpdateChecker(
+            'https://github.com/Kevinchamplin/wp-7-readiness-check/',
+            __FILE__,
+            'wp-7-readiness-check'
+        );
+        $vcs_api = $wp7rc_update_checker->getVcsApi();
+        if (method_exists($vcs_api, 'enableReleaseAssets')) {
+            // Use the release-attached zip asset rather than building from source archive,
+            // so the user gets exactly the file shipped with `gh release create`.
+            $vcs_api->enableReleaseAssets();
+        }
+    }
+}
 
 if (defined('DOING_AJAX') && DOING_AJAX) {
     require_once WP7RC_DIR . 'includes/ajax.php';
