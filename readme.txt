@@ -1,10 +1,10 @@
 === WP 7 Readiness Check ===
 Contributors: champlinenterprises
-Tags: wordpress 7, upgrade, readiness, audit, compatibility, dataviews, ai client, enterprise
+Tags: upgrade, readiness, audit, compatibility, enterprise
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.5
+Stable tag: 1.0.6
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,9 @@ It covers the 30+ items that can be automated. The remaining 50 are human-judgme
 2. Per-finding view with status icon, technical detail, and remediation hint.
 
 == Changelog ==
+
+= 1.0.6 =
+* **WordPress.org submission readiness.** All Plugin Check ERRORs and most WARNINGs resolved: short PHP tags converted, direct filesystem operations refactored to use WP_Filesystem, $_POST/$_SERVER inputs unslashed before sanitization, readme tags trimmed to 5, build script now excludes hidden files. No functional changes — same audit, same autofixes, same snapshot safety net. Ready for the WP.org plugin directory review.
 
 = 1.0.5 =
 * **Auto-update support via GitHub releases.** The plugin now polls GitHub releases hourly and surfaces new versions in WordPress admin → Updates with the standard one-click update flow. From v1.0.5 forward, every patch release (`gh release create vX.Y.Z`) propagates to every install within an hour. Uses YahnisElsts/plugin-update-checker v5.6 (battle-tested by thousands of commercial plugins, MIT-licensed). No telemetry — PUC only fetches the public GitHub release manifest; nothing leaves your server.

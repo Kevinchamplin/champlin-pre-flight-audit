@@ -30,16 +30,19 @@ require_once __DIR__ . '/snapshots.php';
 function wp7rc_write_mu_plugin(string $filename, string $contents): bool
 {
     $dir = defined('WPMU_PLUGIN_DIR') ? WPMU_PLUGIN_DIR : (WP_CONTENT_DIR . '/mu-plugins');
+    $fs  = wp7rc_fs();
+    if (!$fs) {
+        return false;
+    }
     if (!is_dir($dir)) {
-        if (!@mkdir($dir, 0755, true)) {
+        $chmod_dir = defined('FS_CHMOD_DIR') ? FS_CHMOD_DIR : 0755;
+        if (!$fs->mkdir($dir, $chmod_dir)) {
             return false;
         }
     }
-    if (!is_writable($dir)) {
-        return false;
-    }
-    $target = trailingslashit($dir) . $filename;
-    return (bool) @file_put_contents($target, $contents);
+    $target    = trailingslashit($dir) . $filename;
+    $chmod_file = defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : 0644;
+    return (bool) $fs->put_contents($target, $contents, $chmod_file);
 }
 
 /**

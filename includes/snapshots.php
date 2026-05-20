@@ -27,11 +27,14 @@ function wp7rc_snapshots_dir(): string
 {
     $dir = trailingslashit(WP_CONTENT_DIR) . 'wp7rc-snapshots';
     if (!is_dir($dir)) {
-        @mkdir($dir, 0755, true);
-        // Drop deny-all guards across web server flavors.
-        @file_put_contents($dir . '/.htaccess', "Order deny,allow\nDeny from all\n");
-        @file_put_contents($dir . '/web.config', '<?xml version="1.0" encoding="UTF-8"?><configuration><system.webServer><authorization><deny users="*" /></authorization></system.webServer></configuration>');
-        @file_put_contents($dir . '/index.php', "<?php // Silence is golden.\n");
+        $fs = wp7rc_fs();
+        if ($fs) {
+            $fs->mkdir($dir, defined('FS_CHMOD_DIR') ? FS_CHMOD_DIR : 0755);
+            // Drop deny-all guards across web server flavors.
+            $fs->put_contents($dir . '/.htaccess', "Order deny,allow\nDeny from all\n", defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : 0644);
+            $fs->put_contents($dir . '/web.config', '<?xml version="1.0" encoding="UTF-8"?><configuration><system.webServer><authorization><deny users="*" /></authorization></system.webServer></configuration>', defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : 0644);
+            $fs->put_contents($dir . '/index.php', "<?php // Silence is golden.\n", defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : 0644);
+        }
     }
     return $dir;
 }
@@ -84,7 +87,10 @@ function wp7rc_snapshot_plugin(string $plugin_file): array
         'created_by'      => get_current_user_id(),
         'byte_size'       => wp7rc_dir_size($dest),
     ];
-    @file_put_contents($dest . '/.wp7rc-manifest.json', wp_json_encode($manifest, JSON_PRETTY_PRINT));
+    $fs = wp7rc_fs();
+    if ($fs) {
+        $fs->put_contents($dest . '/.wp7rc-manifest.json', wp_json_encode($manifest, JSON_PRETTY_PRINT), defined('FS_CHMOD_FILE') ? FS_CHMOD_FILE : 0644);
+    }
 
     // Prune old snapshots
     wp7rc_prune_snapshots();
@@ -199,7 +205,12 @@ function wp7rc_copy_recursive(string $src, string $dest, array $exclude = []): b
     if (!is_dir($src)) {
         return false;
     }
-    if (!is_dir($dest) && !@mkdir($dest, 0755, true)) {
+    $fs = wp7rc_fs();
+    if (!$fs) {
+        return false;
+    }
+    $chmod_dir  = defined('FS_CHMOD_DIR')  ? FS_CHMOD_DIR  : 0755;
+    if (!is_dir($dest) && !$fs->mkdir($dest, $chmod_dir)) {
         return false;
     }
     $rii = new RecursiveIteratorIterator(
@@ -213,11 +224,11 @@ function wp7rc_copy_recursive(string $src, string $dest, array $exclude = []): b
         }
         $target = trailingslashit($dest) . $rel;
         if ($item->isDir()) {
-            if (!is_dir($target) && !@mkdir($target, 0755, true)) {
+            if (!is_dir($target) && !$fs->mkdir($target, $chmod_dir)) {
                 return false;
             }
         } else {
-            if (!@copy($item->getPathname(), $target)) {
+            if (!$fs->copy($item->getPathname(), $target, true)) {
                 return false;
             }
         }
@@ -230,18 +241,12 @@ function wp7rc_rrmdir(string $dir): void
     if (!is_dir($dir)) {
         return;
     }
-    $rii = new RecursiveIteratorIterator(
-        new RecursiveDirectoryIterator($dir, RecursiveDirectoryIterator::SKIP_DOTS),
-        RecursiveIteratorIterator::CHILD_FIRST
-    );
-    foreach ($rii as $item) {
-        if ($item->isDir()) {
-            @rmdir($item->getPathname());
-        } else {
-            @unlink($item->getPathname());
-        }
+    $fs = wp7rc_fs();
+    if (!$fs) {
+        return;
     }
-    @rmdir($dir);
+    // WP_Filesystem's delete() with recursive=true handles the whole tree in one call.
+    $fs->delete($dir, true, 'd');
 }
 
 function wp7rc_dir_size(string $dir): int

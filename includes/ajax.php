@@ -25,7 +25,7 @@ add_action('wp_ajax_wp7rc_apply_fix', static function (): void {
     }
     check_ajax_referer('wp7rc_fix', 'nonce');
 
-    $fix_id = isset($_POST['fix_id']) ? sanitize_key((string) $_POST['fix_id']) : '';
+    $fix_id = isset($_POST['fix_id']) ? sanitize_key(wp_unslash((string) $_POST['fix_id'])) : '';
     if ($fix_id === '') {
         wp_send_json_error(['message' => 'Missing fix_id.'], 400);
     }
@@ -109,8 +109,8 @@ add_action('wp_ajax_wp7rc_toggle_override', static function (): void {
     }
     check_ajax_referer('wp7rc_fix', 'nonce');
 
-    $finding_id = isset($_POST['finding_id']) ? sanitize_key((string) $_POST['finding_id']) : '';
-    $action     = isset($_POST['override_action']) ? sanitize_key((string) $_POST['override_action']) : 'accept';
+    $finding_id = isset($_POST['finding_id']) ? sanitize_key(wp_unslash((string) $_POST['finding_id'])) : '';
+    $action     = isset($_POST['override_action']) ? sanitize_key(wp_unslash((string) $_POST['override_action'])) : 'accept';
     if ($finding_id === '') {
         wp_send_json_error(['message' => 'Missing finding_id.'], 400);
     }
@@ -147,7 +147,7 @@ add_action('wp_ajax_wp7rc_restore_snapshot', static function (): void {
     }
     check_ajax_referer('wp7rc_fix', 'nonce');
 
-    $id = isset($_POST['snapshot_id']) ? sanitize_file_name((string) $_POST['snapshot_id']) : '';
+    $id = isset($_POST['snapshot_id']) ? sanitize_file_name(wp_unslash((string) $_POST['snapshot_id'])) : '';
     if ($id === '') {
         wp_send_json_error(['message' => 'Missing snapshot_id.'], 400);
     }

@@ -6,8 +6,8 @@ set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 BUILD_DIR="$(mktemp -d)"
-SLUG="wp-7-compatibility-auditor"
-NAME="WP 7.0 Compatibility Auditor"
+SLUG="champlin-pre-flight-audit"
+NAME="Champlin Pre-Flight Audit"
 OUT_DIR="$REPO_ROOT/dist"
 
 mkdir -p "$OUT_DIR"
@@ -17,8 +17,11 @@ echo "==> Staging source in $BUILD_DIR/$SLUG"
 mkdir -p "$BUILD_DIR/$SLUG"
 rsync -a \
   --exclude '.git' \
+  --exclude '.gitignore' \
   --exclude '.DS_Store' \
-  --exclude 'scripts/build-wp-org.sh' \
+  --exclude '.editorconfig' \
+  --exclude '.github' \
+  --exclude 'scripts/' \
   --exclude 'dist/' \
   --exclude 'vendor/plugin-update-checker/' \
   "$REPO_ROOT/" "$BUILD_DIR/$SLUG/"
@@ -37,6 +40,8 @@ new = new.replace("Plugin Name:       WP 7 Readiness Check", "Plugin Name:      
 new = new.replace("'wp-7-readiness-check'", "'$SLUG'")
 new = new.replace("tools_page_wp-7-readiness-check", "tools_page_$SLUG")
 new = new.replace("page=wp-7-readiness-check", "page=$SLUG")
+# Update the Text Domain header to match the new slug
+new = new.replace("Text Domain:       wp-7-readiness-check", "Text Domain:       $SLUG")
 new = new.replace(
     "Plugin URI:        https://champlinenterprises.com/wordpress-7-0-readiness-checklist.html",
     "Plugin URI:        https://champlinenterprises.com/wp-7-readiness-plugin.html"

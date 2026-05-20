@@ -16,6 +16,12 @@ function wp7rc_check_database(): array
     global $wpdb;
     $out = [];
 
+    // Direct DB queries are intentional and uncacheable: this is a one-shot audit
+    // that introspects the live database engine + storage-engine capabilities.
+    // Caching defeats the entire point — we want fresh state every audit run.
+    // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery
+    // phpcs:disable WordPress.DB.DirectDatabaseQuery.NoCaching
+
     $version_raw = (string) $wpdb->get_var('SELECT VERSION()');
     $is_maria    = stripos($version_raw, 'mariadb') !== false;
     // Some versions return "5.5.5-10.6.x-MariaDB" — strip the prefix
@@ -42,7 +48,7 @@ function wp7rc_check_database(): array
     }
 
     // InnoDB engine available
-    $engines = $wpdb->get_results("SHOW ENGINES", ARRAY_A);
+    $engines = $wpdb->get_results('SHOW ENGINES', ARRAY_A);
     $innodb_ok = false;
     if (is_array($engines)) {
         foreach ($engines as $row) {
@@ -60,6 +66,9 @@ function wp7rc_check_database(): array
     } else {
         $out[] = wp7rc_result('innodb', 'database', 'InnoDB storage engine', 'fail', 'unavailable', 'InnoDB enabled', 'InnoDB is not available; WordPress 7.0 RTC schema and large-table operations may fail.', 'Contact your host to enable InnoDB.');
     }
+
+    // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery
+    // phpcs:enable WordPress.DB.DirectDatabaseQuery.NoCaching
 
     return $out;
 }

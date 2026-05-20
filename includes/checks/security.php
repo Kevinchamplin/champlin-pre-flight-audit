@@ -141,6 +141,10 @@ function wp7rc_check_security(): array
  */
 function wp7rc_detect_managed_host(): ?string
 {
+    // Read $_SERVER values once, properly unslashed + sanitized.
+    $doc_root        = isset($_SERVER['DOCUMENT_ROOT'])    ? sanitize_text_field(wp_unslash((string) $_SERVER['DOCUMENT_ROOT'])) : '';
+    $server_software = isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field(wp_unslash((string) $_SERVER['SERVER_SOFTWARE'])) : '';
+
     // Plesk — multiple signals, open_basedir-safe.
     // Order matters: cheap path checks before filesystem reads.
     if (strpos(ABSPATH, '/var/www/vhosts/') === 0) {
@@ -148,10 +152,10 @@ function wp7rc_detect_managed_host(): ?string
         // restricts the PHP process from reading /usr/local/psa/.
         return 'Plesk';
     }
-    if (strpos((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/vhosts/') !== false) {
+    if ($doc_root !== '' && strpos($doc_root, '/vhosts/') !== false) {
         return 'Plesk';
     }
-    if (strpos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'Plesk') !== false) {
+    if ($server_software !== '' && strpos($server_software, 'Plesk') !== false) {
         return 'Plesk';
     }
     if (@is_dir('/usr/local/psa')) {
@@ -178,7 +182,7 @@ function wp7rc_detect_managed_host(): ?string
         return 'SiteGround';
     }
     // Flywheel
-    if (defined('FLYWHEEL_PLUGIN_DIR') || strpos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'Flywheel') !== false) {
+    if (defined('FLYWHEEL_PLUGIN_DIR') || ($server_software !== '' && strpos($server_software, 'Flywheel') !== false)) {
         return 'Flywheel';
     }
     // GoDaddy Managed WordPress
@@ -190,7 +194,7 @@ function wp7rc_detect_managed_host(): ?string
         return 'cPanel';
     }
     // DreamHost (DreamPress)
-    if (defined('DREAMHOST_PANEL_VERSION') || (isset($_SERVER['SERVER_SOFTWARE']) && strpos((string) $_SERVER['SERVER_SOFTWARE'], 'DreamHost') !== false)) {
+    if (defined('DREAMHOST_PANEL_VERSION') || ($server_software !== '' && strpos($server_software, 'DreamHost') !== false)) {
         return 'DreamHost';
     }
 

@@ -50,6 +50,25 @@ function wp7rc_is_post_seven(): bool
 }
 
 /**
+ * Lazy-initialize WP_Filesystem and return the global instance.
+ * Returns false if filesystem credentials are required and not provided
+ * (rare on Plesk and managed hosts where direct access is the default).
+ *
+ * @return object|false WP_Filesystem_Base subclass or false
+ */
+function wp7rc_fs()
+{
+    global $wp_filesystem;
+    if (!function_exists('WP_Filesystem')) {
+        require_once ABSPATH . 'wp-admin/includes/file.php';
+    }
+    if (!$wp_filesystem || !is_object($wp_filesystem)) {
+        WP_Filesystem();
+    }
+    return $wp_filesystem ?? false;
+}
+
+/**
  * Are we within the "fresh major release" grading window?
  *
  * WordPress 7.0 shipped 2026-05-20. Vendors typically catch up within 14 days
