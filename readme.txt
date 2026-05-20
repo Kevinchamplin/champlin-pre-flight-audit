@@ -4,7 +4,7 @@ Tags: wordpress 7, upgrade, readiness, audit, compatibility, dataviews, ai clien
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.0
+Stable tag: 1.0.1
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,16 @@ It covers the 30+ items that can be automated. The remaining 50 are human-judgme
 2. Per-finding view with status icon, technical detail, and remediation hint.
 
 == Changelog ==
+
+= 1.0.1 =
+* **Fix:** OPcache detection no longer false-positives on hardened hosts. The previous check used `function_exists('opcache_get_status')`, which returns false on Plesk / CloudLinux / managed-WP servers that disable `opcache_get_status` via `disable_functions` for security. The new check uses `extension_loaded('Zend OPcache')` as the primary signal, falling back to detailed memory stats only if the introspection function is available. OPcache now correctly reports PASS on Plesk and CloudLinux hosts.
+* **UX:** Re-run audit button now uses a proper event listener (was inline `onclick` which felt unresponsive when the audit state was unchanged), with a spinning ↻ icon during reload.
+* **UX:** "Apply N available fixes" button replaced with a positive "All available fixes applied" green pill when there are no fixes left, instead of just disappearing.
+* **UX:** "Apply all" dialog now shows a clear bullet list of what will change.
+* **UX:** Fix-results report panel appears below the action buttons after Apply-all, listing every fix's outcome with its full error message inline. No more aggregate "N applied · M failed" without context.
+* **Discoverability:** All outbound links to champlinenterprises.com now carry UTM parameters for attribution. "No telemetry" promise unchanged — UTMs are appended to URLs only, no data sent from your server.
+* **Discoverability:** Tasteful "Star on GitHub" band added to the dashboard footer. Self-reported install signal; fully opt-in.
+* **Docs:** Added README.md, SECURITY.md, CONTRIBUTING.md to the GitHub repo for community standards.
 
 = 1.0.0 =
 * Initial release.
