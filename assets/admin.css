@@ -262,6 +262,13 @@
   font-size: 14px;
   line-height: 1;
 }
+/* HTML [hidden] attribute is supposed to set display:none, but the
+   class-level `display: inline-block` above wins by cascade. Restore
+   the [hidden] behavior explicitly so the Re-run spinner stays hidden
+   until clicked. */
+.wp7rc-btn__icon[hidden] {
+  display: none !important;
+}
 .wp7rc-btn__icon--spin {
   animation: wp7rc-spin 0.8s linear infinite;
 }

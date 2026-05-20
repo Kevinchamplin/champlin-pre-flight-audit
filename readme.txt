@@ -4,7 +4,7 @@ Tags: wordpress 7, upgrade, readiness, audit, compatibility, dataviews, ai clien
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.2
+Stable tag: 1.0.3
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,9 @@ It covers the 30+ items that can be automated. The remaining 50 are human-judgme
 2. Per-finding view with status icon, technical detail, and remediation hint.
 
 == Changelog ==
+
+= 1.0.3 =
+* **Fix:** Re-run audit spinner appearing on page load and never stopping. The v1.0.1 spinner icon used the HTML `hidden` attribute to start hidden, but the plugin's `.wp7rc-btn__icon` class set `display: inline-block` which silently overrode `[hidden]`. The spin animation then ran constantly. Added an explicit `[hidden]` CSS override so the spinner stays hidden until the button is clicked.
 
 = 1.0.2 =
 * **Fix: Custom-code scan no longer false-positives on common vendor plugins.** The previous scope included Advanced Custom Fields, WPGraphQL, Two-Factor, page builders, and other widely-installed plugins that ship their own WordPress 7.0 compatibility updates. Flagging their internal code as if it were user-owned created noise. The vendor-skip list now covers 30+ common plugin slugs across page builders, SEO, ACF, GraphQL/headless, security, cache, forms, translation, and backup.
