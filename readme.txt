@@ -4,7 +4,7 @@ Tags: wordpress 7, upgrade, readiness, audit, compatibility, dataviews, ai clien
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.3
+Stable tag: 1.0.4
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,11 @@ It covers the 30+ items that can be automated. The remaining 50 are human-judgme
 2. Per-finding view with status icon, technical detail, and remediation hint.
 
 == Changelog ==
+
+= 1.0.4 =
+* **Fix:** Plesk detection now works under `open_basedir` restrictions. v1.0.2's `is_dir(/usr/local/psa)` check silently failed when the vhost's `open_basedir` excluded `/usr/local/psa/`. New detection uses ABSPATH (`/var/www/vhosts/...`), DOCUMENT_ROOT, and SERVER_SOFTWARE signals — all open_basedir-safe.
+* **Grading curve relief during major-release week.** Within 14 days of a WordPress major release, plugins and themes still tested against the immediately-prior major (6.9 when current is 7.0) are downgraded from WARN to INFO and excluded from the score. Vendors typically catch up within this window; penalizing every site on day one was unfair. Auto-expires 14 days after the release date.
+* **Accept-as-known-risk override mechanism.** Each warn/fail finding now has an "Accept as known risk" link. Click to acknowledge — the finding still appears in the report (with an "Accepted risk" tag) but is excluded from the readiness score calculation. Real enterprise audit pattern, fully reversible via "Un-accept" button.
 
 = 1.0.3 =
 * **Fix:** Re-run audit spinner appearing on page load and never stopping. The v1.0.1 spinner icon used the HTML `hidden` attribute to start hidden, but the plugin's `.wp7rc-btn__icon` class set `display: inline-block` which silently overrode `[hidden]`. The spin animation then ran constantly. Added an explicit `[hidden]` CSS override so the spinner stays hidden until the button is clicked.

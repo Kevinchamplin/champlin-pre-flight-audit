@@ -99,6 +99,44 @@ add_action('wp_ajax_wp7rc_apply_all_fixes', static function (): void {
 });
 
 /**
+ * Toggle override: mark a finding as "accepted known risk" or undo.
+ * POST: wp7rc_toggle_override
+ * Body: finding_id, action (accept|unaccept), nonce
+ */
+add_action('wp_ajax_wp7rc_toggle_override', static function (): void {
+    if (!current_user_can('manage_options')) {
+        wp_send_json_error(['message' => 'Permission denied.'], 403);
+    }
+    check_ajax_referer('wp7rc_fix', 'nonce');
+
+    $finding_id = isset($_POST['finding_id']) ? sanitize_key((string) $_POST['finding_id']) : '';
+    $action     = isset($_POST['override_action']) ? sanitize_key((string) $_POST['override_action']) : 'accept';
+    if ($finding_id === '') {
+        wp_send_json_error(['message' => 'Missing finding_id.'], 400);
+    }
+
+    $overrides = (array) get_option('wp7rc_overrides', []);
+    if ($action === 'accept') {
+        $overrides[$finding_id] = [
+            'accepted_by' => get_current_user_id(),
+            'accepted_at' => current_time('mysql'),
+        ];
+        $message = 'Marked as accepted known risk. Excluded from readiness score.';
+    } elseif ($action === 'unaccept') {
+        unset($overrides[$finding_id]);
+        $message = 'Override removed. Finding is now counted in the readiness score again.';
+    } else {
+        wp_send_json_error(['message' => 'Invalid action.'], 400);
+    }
+    update_option('wp7rc_overrides', $overrides, false);
+
+    wp_send_json_success([
+        'message'    => $message,
+        'overridden' => $action === 'accept',
+    ]);
+});
+
+/**
  * Restore a snapshot.
  * POST: wp7rc_restore_snapshot
  * Body: snapshot_id, _ajax_nonce

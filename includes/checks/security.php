@@ -141,8 +141,20 @@ function wp7rc_check_security(): array
  */
 function wp7rc_detect_managed_host(): ?string
 {
-    // Plesk — most common indicator is the /usr/local/psa/ install root + server software string
-    if (is_dir('/usr/local/psa') || strpos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'Plesk') !== false) {
+    // Plesk — multiple signals, open_basedir-safe.
+    // Order matters: cheap path checks before filesystem reads.
+    if (strpos(ABSPATH, '/var/www/vhosts/') === 0) {
+        // Plesk's standard vhost root. This works even when open_basedir
+        // restricts the PHP process from reading /usr/local/psa/.
+        return 'Plesk';
+    }
+    if (strpos((string) ($_SERVER['DOCUMENT_ROOT'] ?? ''), '/vhosts/') !== false) {
+        return 'Plesk';
+    }
+    if (strpos((string) ($_SERVER['SERVER_SOFTWARE'] ?? ''), 'Plesk') !== false) {
+        return 'Plesk';
+    }
+    if (@is_dir('/usr/local/psa')) {
         return 'Plesk';
     }
     // WP Engine

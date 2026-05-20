@@ -434,6 +434,74 @@
 /* Subtle row-level color cues for status */
 .wp7rc-finding--fail { background: rgba(239,68,68,.012); }
 .wp7rc-finding--warn { background: rgba(234,179,8,.012); }
+.wp7rc-finding--overridden {
+  opacity: .68;
+  background: linear-gradient(135deg, rgba(99,102,241,.04), transparent);
+}
+.wp7rc-finding--overridden .wp7rc-finding__label::after {
+  content: "";
+}
+.wp7rc-icon--accepted {
+  background: #eef2ff;
+  color: #4f46e5;
+}
+.wp7rc-icon--accepted svg {
+  display: none;
+}
+.wp7rc-icon--accepted::before {
+  content: "★";
+  font-size: 14px;
+  line-height: 1;
+}
+
+.wp7rc-finding__override {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+.wp7rc-override-btn {
+  background: transparent;
+  color: var(--wp7rc-muted);
+  border: 1px dashed var(--wp7rc-rule);
+  padding: 5px 12px;
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all .12s ease;
+}
+.wp7rc-override-btn:hover {
+  border-color: #6366f1;
+  color: #4338ca;
+  background: #eef2ff;
+}
+.wp7rc-override-btn--undo {
+  color: #4338ca;
+  border-color: #6366f1;
+  border-style: solid;
+  background: #eef2ff;
+}
+.wp7rc-override-btn--undo:hover {
+  background: #e0e7ff;
+}
+.wp7rc-override-meta {
+  font-size: 11px;
+  color: var(--wp7rc-muted);
+  font-style: italic;
+}
+.wp7rc-finding__override-tag {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  background: #eef2ff;
+  color: #4338ca;
+  padding: 3px 8px;
+  border-radius: 4px;
+  border: 1px solid #c7d2fe;
+}
+
 .wp7rc-finding--resolved { opacity: .65; }
 .wp7rc-finding--resolved .wp7rc-icon--fail,
 .wp7rc-finding--resolved .wp7rc-icon--warn {

@@ -198,9 +198,11 @@ $dash = (int) round($circ * ($score / 100));
           <?php foreach ($items as $r): ?>
             <?php
               $status = $r['status'] ?? 'info';
-              $icon_class = 'wp7rc-icon wp7rc-icon--' . $status;
+              $is_overridden = !empty($r['overridden']);
+              $icon_class = 'wp7rc-icon wp7rc-icon--' . ($is_overridden ? 'accepted' : $status);
+              $row_class  = 'wp7rc-finding wp7rc-finding--' . $status . ($is_overridden ? ' wp7rc-finding--overridden' : '');
             ?>
-            <li class="wp7rc-finding wp7rc-finding--<?= esc_attr($status); ?>">
+            <li class="<?= esc_attr($row_class); ?>">
               <div class="<?= esc_attr($icon_class); ?>" aria-hidden="true">
                 <?php if ($status === 'pass'): ?><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-width="2.5"/></svg>
                 <?php elseif ($status === 'warn'): ?><svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z M12 9v6 M12 18v.5" stroke-width="2"/></svg>
@@ -213,6 +215,9 @@ $dash = (int) round($circ * ($score / 100));
                   <h3 class="wp7rc-finding__label"><?= esc_html($r['label'] ?? ''); ?></h3>
                   <?php if (!empty($r['value'])): ?>
                     <code class="wp7rc-finding__value"><?= esc_html($r['value']); ?></code>
+                  <?php endif; ?>
+                  <?php if ($is_overridden): ?>
+                    <span class="wp7rc-finding__override-tag">Accepted risk</span>
                   <?php endif; ?>
                 </div>
                 <?php if (!empty($r['message'])): ?>
@@ -232,6 +237,22 @@ $dash = (int) round($circ * ($score / 100));
                       <span class="wp7rc-btn__icon" aria-hidden="true">⚡</span> Fix automatically
                     </button>
                     <span class="wp7rc-fix-status" role="status" aria-live="polite"></span>
+                  </div>
+                <?php endif; ?>
+                <?php if (in_array($status, ['warn', 'fail'], true) || $is_overridden): ?>
+                  <div class="wp7rc-finding__override" data-wp7rc-override-row="<?= esc_attr($r['id'] ?? ''); ?>">
+                    <?php if ($is_overridden): ?>
+                      <button class="wp7rc-override-btn wp7rc-override-btn--undo" data-wp7rc-override="<?= esc_attr($r['id'] ?? ''); ?>" data-action="unaccept">
+                        Un-accept (re-count in score)
+                      </button>
+                      <span class="wp7rc-override-meta">
+                        Accepted <?= esc_html((string) ($r['override_meta']['accepted_at'] ?? '')); ?>
+                      </span>
+                    <?php else: ?>
+                      <button class="wp7rc-override-btn" data-wp7rc-override="<?= esc_attr($r['id'] ?? ''); ?>" data-action="accept" title="Mark as known risk so this finding doesn't affect your readiness score.">
+                        Accept as known risk
+                      </button>
+                    <?php endif; ?>
                   </div>
                 <?php endif; ?>
               </div>

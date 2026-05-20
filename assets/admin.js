@@ -15,7 +15,42 @@
     wireRestoreButtons();
     wireRerunButton();
     wirePrintButton();
+    wireOverrideButtons();
   });
+
+  /* ============ Accept-as-known-risk override buttons ============ */
+  function wireOverrideButtons() {
+    var buttons = document.querySelectorAll('[data-wp7rc-override]');
+    buttons.forEach(function (btn) {
+      btn.addEventListener('click', function (e) {
+        e.preventDefault();
+        var findingId = btn.getAttribute('data-wp7rc-override');
+        var action = btn.getAttribute('data-action') || 'accept';
+        if (!findingId) return;
+        if (action === 'accept' && !confirm('Mark "' + findingId + '" as an accepted known risk? It will no longer count toward your readiness score. You can un-accept it later from the same place.')) {
+          return;
+        }
+        btn.disabled = true;
+        btn.textContent = action === 'accept' ? 'Accepting…' : 'Removing…';
+        ajaxPost('wp7rc_toggle_override', { finding_id: findingId, override_action: action })
+          .then(function (json) {
+            if (json && json.success) {
+              // Reload so the score updates and the finding rerenders with the right state.
+              window.location.reload();
+            } else {
+              alert((json && json.data && json.data.message) || 'Override action failed.');
+              btn.disabled = false;
+              btn.textContent = action === 'accept' ? 'Accept as known risk' : 'Un-accept (re-count in score)';
+            }
+          })
+          .catch(function () {
+            alert('Network error.');
+            btn.disabled = false;
+            btn.textContent = action === 'accept' ? 'Accept as known risk' : 'Un-accept (re-count in score)';
+          });
+      });
+    });
+  }
 
   /* ============ Re-run audit (visible loading state) ============ */
   function wireRerunButton() {

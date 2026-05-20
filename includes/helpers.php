@@ -50,6 +50,52 @@ function wp7rc_is_post_seven(): bool
 }
 
 /**
+ * Are we within the "fresh major release" grading window?
+ *
+ * WordPress 7.0 shipped 2026-05-20. Vendors typically catch up within 14 days
+ * (page builders + ACF stack + Yoast historically bump "Tested up to" within
+ * a week of a major). Penalizing them as WARN during this window is
+ * unfair — most installs would flunk the audit on launch day no matter how
+ * well-prepared they were.
+ *
+ * Within the window, plugins/themes tested at the immediately-prior major
+ * (6.9 when current is 7.0) are downgraded from WARN to INFO.
+ */
+function wp7rc_is_within_major_release_window(): bool
+{
+    // Bump this constant when WordPress 7.1 ships.
+    $release_date = '2026-05-20';
+    $window_days  = 14;
+    $today        = (int) strtotime('today');
+    $release_ts   = (int) strtotime($release_date);
+    if ($release_ts === false || $today === false) {
+        return false;
+    }
+    return $today >= $release_ts && ($today - $release_ts) <= ($window_days * 86400);
+}
+
+/**
+ * Get the set of finding IDs the user has marked as "accepted known risks."
+ * Stored as wp_options['wp7rc_overrides'].
+ *
+ * @return array<string, array{accepted_by:int,accepted_at:string}>
+ */
+function wp7rc_get_overrides(): array
+{
+    $val = get_option('wp7rc_overrides', []);
+    return is_array($val) ? $val : [];
+}
+
+/**
+ * Is this finding ID currently flagged as accepted-risk?
+ */
+function wp7rc_is_overridden(string $finding_id): bool
+{
+    $overrides = wp7rc_get_overrides();
+    return isset($overrides[$finding_id]);
+}
+
+/**
  * Recursively scan files matching a pattern in a directory, with safety caps.
  *
  * @param string   $dir          Directory to scan.
@@ -157,13 +203,17 @@ function wp7rc_relpath(string $path): string
 
 /**
  * Compute a 0-100 readiness score from results.
- * Pass = 1, Warn = 0.5, Fail = 0, Info/Skip ignored.
+ * Pass = 1, Warn = 0.5, Fail = 0, Info/Skip/Overridden ignored.
  */
 function wp7rc_score(array $results): int
 {
     $points = 0.0;
     $total  = 0;
     foreach ($results as $r) {
+        // Accepted-as-known-risk findings don't count toward the score.
+        if (!empty($r['overridden'])) {
+            continue;
+        }
         if (in_array($r['status'], ['pass', 'warn', 'fail'], true)) {
             $total++;
             if ($r['status'] === 'pass') {

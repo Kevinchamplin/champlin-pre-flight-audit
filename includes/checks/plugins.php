@@ -109,14 +109,25 @@ function wp7rc_check_plugins(): array
         );
     }
     if ($compat_warn !== []) {
+        // Grading curve relief: during the first 14 days after a WordPress major release,
+        // plugins tested at the immediately-prior major (6.9 when current is 7.0) are
+        // downgraded from WARN to INFO. Vendors typically catch up within this window.
+        $is_release_week = wp7rc_is_within_major_release_window();
+        $compat_status = $is_release_week ? 'info' : 'warn';
+        $compat_label = $is_release_week
+            ? 'Plugin compatibility (vendor update expected)'
+            : 'Plugin compatibility (untested on 7.0)';
+        $compat_message_suffix = $is_release_week
+            ? ' Within the first 14 days of a WordPress major release, plugins still on the prior major are considered acceptable risk — vendors typically ship their compatibility update within this window.'
+            : '';
         $out[] = wp7rc_result(
             'plugin_compat_warn',
             'plugins',
-            'Plugin compatibility (untested on 7.0)',
-            'warn',
+            $compat_label,
+            $compat_status,
             sprintf('%d plugin%s tested on 6.9, not yet on 7.0', count($compat_warn), count($compat_warn) === 1 ? '' : 's'),
             'All active plugins tested against WP 7.0',
-            sprintf('Plugins tested through WP 6.9 but not yet on 7.0: %s', implode(', ', array_slice($compat_warn, 0, 10)) . (count($compat_warn) > 10 ? '…' : '')),
+            sprintf('Plugins tested through WP 6.9 but not yet on 7.0: %s.%s', implode(', ', array_slice($compat_warn, 0, 10)) . (count($compat_warn) > 10 ? '…' : ''), $compat_message_suffix),
             'Test these on staging against 7.0 before production rollout. Many plugins ship their 7.0-tested release in the 24-72h window after launch.'
         );
     }

@@ -36,7 +36,15 @@ function wp7rc_check_themes(): array
     } elseif (version_compare($tested, '7.0', '>=')) {
         $out[] = wp7rc_result('theme_tested', 'themes', 'Theme compatibility header', 'pass', sprintf('tested up to %s', $tested), 'declares 7.0 compatibility', 'Theme declares WordPress 7.0 compatibility.');
     } elseif (version_compare($tested, '6.9', '>=')) {
-        $out[] = wp7rc_result('theme_tested', 'themes', 'Theme compatibility header', 'warn', sprintf('tested up to %s', $tested), 'declares 7.0 compatibility', 'Theme is tested on 6.9 but not yet on 7.0. Test on staging.', 'Check vendor for a 7.0-tested release.');
+        // Grading curve relief: within 14 days of a major WP release, themes still on
+        // the prior major are info-level (vendor catching up). Outside the window: warn.
+        $is_release_week = wp7rc_is_within_major_release_window();
+        $status = $is_release_week ? 'info' : 'warn';
+        $label  = $is_release_week ? 'Theme compatibility (vendor update expected)' : 'Theme compatibility header';
+        $msg    = $is_release_week
+            ? sprintf('Theme tested through WP %s but not yet on 7.0. Within the first 14 days of a WordPress major release, themes still on the prior major are considered acceptable risk — the WordPress core team typically ships a theme update within this window.', $tested)
+            : sprintf('Theme is tested on %s but not yet on 7.0. Test on staging.', $tested);
+        $out[] = wp7rc_result('theme_tested', 'themes', $label, $status, sprintf('tested up to %s', $tested), 'declares 7.0 compatibility', $msg, 'Check vendor for a 7.0-tested release.');
     } else {
         $out[] = wp7rc_result('theme_tested', 'themes', 'Theme compatibility header', 'fail', sprintf('tested up to %s', $tested), 'declares 7.0 compatibility', sprintf('Theme is only tested through WordPress %s.', $tested), 'Plan a theme update or replacement before the WordPress 7.0 upgrade.');
     }

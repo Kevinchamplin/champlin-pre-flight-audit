@@ -65,9 +65,23 @@ function wp7rc_run_audit(): array
         }
     }
 
-    $summary = ['pass' => 0, 'warn' => 0, 'fail' => 0, 'info' => 0, 'skip' => 0];
+    // Annotate findings with override state so the score + UI can react.
+    $overrides = wp7rc_get_overrides();
+    foreach ($results as &$r) {
+        $r['overridden'] = isset($overrides[$r['id']]);
+        if ($r['overridden']) {
+            $r['override_meta'] = $overrides[$r['id']];
+        }
+    }
+    unset($r);
+
+    $summary = ['pass' => 0, 'warn' => 0, 'fail' => 0, 'info' => 0, 'skip' => 0, 'overridden' => 0];
     foreach ($results as $r) {
         $status = $r['status'] ?? 'info';
+        if (!empty($r['overridden'])) {
+            $summary['overridden']++;
+            continue;
+        }
         if (isset($summary[$status])) {
             $summary[$status]++;
         }
