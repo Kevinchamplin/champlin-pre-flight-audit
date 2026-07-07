@@ -62,14 +62,12 @@ add_action('admin_notices', function (): void {
     if (!current_user_can('manage_options')) {
         return;
     }
-    if (get_option(WP7RC_MIGRATION_OPTION) === '1') {
-        return;
-    }
-    if (!wp7rc_legacy_folder_present() && !wp7rc_legacy_in_active()) {
-        return;
-    }
 
-    if (isset($_GET['cpfa_migrated']) && $_GET['cpfa_migrated'] === '1') {
+    // One-time success notice after a legacy migration. The signal is passed via
+    // a transient set by the (nonce-verified) migrate action below — not a request
+    // parameter — so there is no unauthenticated form data to nonce-check here.
+    if (get_transient('wp7rc_legacy_migrated')) {
+        delete_transient('wp7rc_legacy_migrated');
         ?>
         <div class="notice notice-success is-dismissible">
             <p>
@@ -78,6 +76,13 @@ add_action('admin_notices', function (): void {
             </p>
         </div>
         <?php
+        return;
+    }
+
+    if (get_option(WP7RC_MIGRATION_OPTION) === '1') {
+        return;
+    }
+    if (!wp7rc_legacy_folder_present() && !wp7rc_legacy_in_active()) {
         return;
     }
 
@@ -120,7 +125,8 @@ add_action('admin_init', function (): void {
     if ($action === 'migrate_legacy') {
         check_admin_referer('wp7rc_migrate_legacy');
         wp7rc_perform_legacy_migration();
-        wp_safe_redirect(admin_url('tools.php?page=champlin-pre-flight-audit&cpfa_migrated=1'));
+        set_transient('wp7rc_legacy_migrated', '1', MINUTE_IN_SECONDS);
+        wp_safe_redirect(admin_url('tools.php?page=champlin-pre-flight-audit'));
         exit;
     }
 

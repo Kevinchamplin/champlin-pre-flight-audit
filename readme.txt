@@ -70,7 +70,7 @@ It covers the 30+ items that can be automated. The remaining 50 are human-judgme
 == Changelog ==
 
 = 1.0.7 =
-* **Plugin review compliance.** Managed-host detection no longer assumes a hardcoded server filesystem layout — Plesk is now detected from the `DOCUMENT_ROOT`/`SERVER_SOFTWARE` environment signals and the control-panel install directory instead of matching `ABSPATH` against a fixed vhost path. No functional change: the same hosts are detected, and detection stays `open_basedir`-safe. Contributors list corrected to the plugin's WordPress.org account.
+* **Plugin review compliance.** Managed-host detection no longer assumes a hardcoded server filesystem layout — Plesk is now detected from the `DOCUMENT_ROOT`/`SERVER_SOFTWARE` environment signals and the control-panel install directory instead of matching `ABSPATH` against a fixed vhost path. No functional change: the same hosts are detected, and detection stays `open_basedir`-safe. Contributors list corrected to the plugin's WordPress.org account. The legacy-migration success notice now signals via a transient set by the nonce-verified migrate action instead of a URL parameter, resolving the Plugin Check nonce-verification warnings (and making the notice reliably display).
 
 = 1.0.6 =
 * **WordPress.org submission readiness.** All Plugin Check ERRORs and most WARNINGs resolved: short PHP tags converted, direct filesystem operations refactored to use WP_Filesystem, $_POST/$_SERVER inputs unslashed before sanitization, readme tags trimmed to 5, build script now excludes hidden files. No functional changes — same audit, same autofixes, same snapshot safety net. Ready for the WP.org plugin directory review.
