@@ -145,13 +145,10 @@ function wp7rc_detect_managed_host(): ?string
     $doc_root        = isset($_SERVER['DOCUMENT_ROOT'])    ? sanitize_text_field(wp_unslash((string) $_SERVER['DOCUMENT_ROOT'])) : '';
     $server_software = isset($_SERVER['SERVER_SOFTWARE']) ? sanitize_text_field(wp_unslash((string) $_SERVER['SERVER_SOFTWARE'])) : '';
 
-    // Plesk — multiple signals, open_basedir-safe.
-    // Order matters: cheap path checks before filesystem reads.
-    if (strpos(ABSPATH, '/var/www/vhosts/') === 0) {
-        // Plesk's standard vhost root. This works even when open_basedir
-        // restricts the PHP process from reading /usr/local/psa/.
-        return 'Plesk';
-    }
+    // Plesk — detected from the environment (DOCUMENT_ROOT / SERVER_SOFTWARE)
+    // and the control panel's own install directory, not from an assumed
+    // WordPress install path. Order matters: cheap signal checks before
+    // filesystem reads.
     if ($doc_root !== '' && strpos($doc_root, '/vhosts/') !== false) {
         return 'Plesk';
     }

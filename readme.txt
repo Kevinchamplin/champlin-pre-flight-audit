@@ -1,10 +1,10 @@
 === Champlin Pre-Flight Audit ===
-Contributors: champlinenterprises
+Contributors: cnckevin
 Tags: upgrade, readiness, audit, compatibility, enterprise
 Requires at least: 6.0
 Tested up to: 7.0
 Requires PHP: 7.4
-Stable tag: 1.0.6
+Stable tag: 1.0.7
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -68,6 +68,9 @@ It covers the 30+ items that can be automated. The remaining 50 are human-judgme
 2. Per-finding view with status icon, technical detail, and remediation hint.
 
 == Changelog ==
+
+= 1.0.7 =
+* **Plugin review compliance.** Managed-host detection no longer assumes a hardcoded server filesystem layout — Plesk is now detected from the `DOCUMENT_ROOT`/`SERVER_SOFTWARE` environment signals and the control-panel install directory instead of matching `ABSPATH` against a fixed vhost path. No functional change: the same hosts are detected, and detection stays `open_basedir`-safe. Contributors list corrected to the plugin's WordPress.org account.
 
 = 1.0.6 =
 * **WordPress.org submission readiness.** All Plugin Check ERRORs and most WARNINGs resolved: short PHP tags converted, direct filesystem operations refactored to use WP_Filesystem, $_POST/$_SERVER inputs unslashed before sanitization, readme tags trimmed to 5, build script now excludes hidden files. No functional changes — same audit, same autofixes, same snapshot safety net. Ready for the WP.org plugin directory review.
